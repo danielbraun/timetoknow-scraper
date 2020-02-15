@@ -1,10 +1,30 @@
 CURL_CONFIG=-XGET -f -H "Authorization: Bearer $(shell cat oauth_token)"
-COURSE_ID=088f88db-a0e6-4262-8551-6009f930b64b
+HOST=https://api.prod.timetoknow.com
 
-all: course.json lesson.json
+all: lessons
 
-course.json: oauth_token
-	curl $(CURL_CONFIG) 'https://api.prod.timetoknow.com/LibraryService/v2/channels/088f88db-a0e6-4262-8551-6009f930b64b/content' -o $@
+courses: contentTree.json
+	$(MAKE) \
+	    $(shell cat $< \
+	    | jq -r ".channelWithContentTree | map(.id)[] " \
+	    | xargs printf "courses/%s.json\n" )
 
-lesson.json: oauth_token
-	curl $(CURL_CONFIG) 'https://api.prod.timetoknow.com/PlayAppService/lessons/e4a3ce49-120f-41b7-b20c-1885e9fb7bab/version/1/play' -o $@
+lessons: courses
+	$(MAKE) \
+	    $(shell cat $</* \
+	    | jq -r '.libraryItems[] | select(.type == "LESSON") | .id' \
+	    | xargs printf "lessons/%s.json\n")
+
+contentTree.json:
+	curl $(CURL_CONFIG) '$(HOST)/LibraryService/v2/channels/contentTree' -o $@
+
+lessons/%.json:
+	curl $(CURL_CONFIG) '$(HOST)/PlayAppService/lessons/$*/version/1/play' -o $@
+
+courses/%.json:
+	curl $(CURL_CONFIG) '$(HOST)/LibraryService/v2/channels/$*/content' -o $@
+
+clean: 
+	rm -f lessons/* courses/* contentTree.json
+
+.PHONY: lessons courses clean
