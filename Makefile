@@ -1,6 +1,8 @@
 CURL_CONFIG=-XGET -f -H "Authorization: Bearer $(shell cat oauth_token)"
 HOST=https://api.prod.timetoknow.com
 # TODO: Download all SVGS and their links
+# use XSLT to make all xlinks:href absolute
+# Then, possibly download them all.
 
 all: lessons
 
