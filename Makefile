@@ -1,5 +1,6 @@
 CURL_CONFIG=-XGET -f -H "Authorization: Bearer $(shell cat oauth_token)"
 HOST=https://api.prod.timetoknow.com
+# TODO: Download all SVGS and their links
 
 all: lessons
 
