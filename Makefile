@@ -11,18 +11,14 @@ all: slides
 # TODO: Make this prettier.
 # Using curl can possibly make this simpler.
 slides/%.svg:
-	DIR=`echo $@ | cut -d "/" -f1` ; \
-	    wget $(HOST2)/resources/$*/$(shell basename $*).svg \
-	    -krp -nH \
-	    --cut-dirs=1 \
-	    -P $$DIR ; \
-	    cd $$DIR/$* ; mv * ../ ;  cd $(shell pwd) ; rm -r $$DIR/$*
+	mkdir -p `dirname $@`
+	curl $(HOST2)/resources/$@ -o $@
 
 slides: lessons
 	@$(MAKE) $(shell ls $</* \
 	    | xargs cat \
 	    | jq -r ".pages | to_entries | map(.value.href)[]" \
-	    | sed -E 's/([[:digit:]]+)\.html+/\1\.svg/g' \
+	    | sed -E 's/([[:digit:]]+)\.html+/\1\/\1\.svg/g' \
 	    | sed -E 's/resources/$@/' \
 	    | grep -v blank_page)
 
