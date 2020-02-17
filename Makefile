@@ -30,13 +30,13 @@ courses: contentTree.json
 	$(MAKE) \
 	    $(shell cat $< \
 	    | jq -r ".channelWithContentTree | map(.id)[] " \
-	    | xargs printf "courses/%s.json\n" )
+	    | xargs printf "$@/%s.json\n" )
 
 lessons: courses
 	$(MAKE) \
 	    $(shell cat $</* \
 	    | jq -r '.libraryItems[] | select(.type == "LESSON") | .id' \
-	    | xargs printf "lessons/%s.json\n")
+	    | xargs printf "$@/%s.json\n")
 
 contentTree.json:
 	curl $(CURL_CONFIG) '$(HOST)/LibraryService/v2/channels/contentTree' -o $@
