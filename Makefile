@@ -6,19 +6,25 @@ HOST2=https://apps.prod.timetoknow.com
 # use XSLT to make all xlinks:href absolute
 # Then, possibly download them all.
 
-all: repl
+all: slides
 
-7.svg:
-	wget https://apps.prod.timetoknow.com/resources/bd980e8a-850b-4064-86f9-cac88f402904/IDR/3849757b-d78f-4ac3-ae4e-8c20d64d6573/7/7.svg
+# TODO: Make this prettier.
+# Using curl can possibly make this simpler.
+slides/%.svg:
+	DIR=`echo $@ | cut -d "/" -f1` ; \
+	    wget $(HOST2)/resources/$*/$(shell basename $*).svg \
+	    -krp -nH \
+	    --cut-dirs=1 \
+	    -P $$DIR ; \
+	    cd $$DIR/$* ; mv * ../ ;  cd $(shell pwd) ; rm -r $$DIR/$*
 
-download: lessons
-	@ls $</* \
+slides: lessons
+	@$(MAKE) $(shell ls $</* \
 	    | xargs cat \
 	    | jq -r ".pages | to_entries | map(.value.href)[]" \
-	    | xargs printf "$(HOST2)/%s\n" $- \
-	    | sed -E 's/([[:digit:]]+)\.html+/\1\/\1\.svg/g'  \
-	    | xargs wget -krp
-
+	    | sed -E 's/([[:digit:]]+)\.html+/\1\.svg/g' \
+	    | sed -E 's/resources/$@/' \
+	    | grep -v blank_page)
 
 courses: contentTree.json
 	$(MAKE) \
@@ -41,7 +47,7 @@ lessons/%.json:
 courses/%.json:
 	curl $(CURL_CONFIG) '$(HOST)/LibraryService/v2/channels/$*/content' -o $@
 
-clean: 
-	rm -f lessons/* courses/* contentTree.json
+clean:
+	rm -rf lessons/* courses/* contentTree.json slides/*
 
 .PHONY: lessons courses clean
