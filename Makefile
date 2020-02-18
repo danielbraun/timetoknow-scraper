@@ -3,21 +3,30 @@ HOST=https://api.prod.timetoknow.com
 HOST2=https://apps.prod.timetoknow.com
 
 all: svg_images
+all: pdfs
+%.pdf: %.svg
+	cairosvg $< -o $@
 
 slides/%:
 	mkdir -p `dirname $@`
 	curl -f $(HOST2)/resources/$* -o $@
 
+pdfs: svg_images
+	$(MAKE) $(shell find slides/ -name "*.svg" | sed -E "s/\.svg/\.pdf/")
+
 svg_images: slides
 	@$(MAKE) $(shell find slides -name "*.svg" \
 	    | xargs -L1 sh make_svg_image_page.sh)
 
+%.page.pdf:
+	mkdir -p `dirname $@`
+	cairosvg $(HOST2)/$*/$(shell basename $*).svg -o $@
+
 slides: lessons
-	@$(MAKE) $(shell ls $</* \
+	$(MAKE) $(shell ls $</* \
 	    | xargs cat \
 	    | jq -r ".pages | to_entries | map(.value.href)[]" \
-	    | sed -E 's/([[:digit:]]+)\.html+/\1\/\1\.svg/g' \
-	    | sed -E 's/resources/$@/' \
+	    | sed -E 's/([[:digit:]]+)\.html+/\1\.page.pdf/g' \
 	    | grep -v blank_page)
 
 courses: contentTree.json
