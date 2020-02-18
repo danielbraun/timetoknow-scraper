@@ -2,10 +2,6 @@ CURL_CONFIG=-XGET -f -H "Authorization: Bearer $(shell cat oauth_token)"
 HOST=https://api.prod.timetoknow.com
 HOST2=https://apps.prod.timetoknow.com
 
-# TODO: Download all SVGS and their links
-# use XSLT to make all xlinks:href absolute
-# Then, possibly download them all.
-
 all: svg_images
 
 slides/%:
@@ -34,7 +30,6 @@ lessons: courses
 	$(MAKE) \
 	    $(shell cat $</* \
 	    | jq -r '.libraryItems[] | select(.type == "LESSON") | .id' \
-	    | tail -n1 \
 	    | xargs printf "$@/%s.json\n")
 
 contentTree.json:
