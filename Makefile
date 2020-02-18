@@ -6,13 +6,15 @@ HOST2=https://apps.prod.timetoknow.com
 # use XSLT to make all xlinks:href absolute
 # Then, possibly download them all.
 
-all: slides
+all: svg_images
 
-# TODO: Make this prettier.
-# Using curl can possibly make this simpler.
-slides/%.svg:
+slides/%:
 	mkdir -p `dirname $@`
-	curl $(HOST2)/resources/$@ -o $@
+	curl -f $(HOST2)/resources/$* -o $@
+
+svg_images: slides
+	@$(MAKE) $(shell find slides -name "*.svg" \
+	    | xargs -L1 sh make_svg_image_page.sh)
 
 slides: lessons
 	@$(MAKE) $(shell ls $</* \
@@ -32,6 +34,7 @@ lessons: courses
 	$(MAKE) \
 	    $(shell cat $</* \
 	    | jq -r '.libraryItems[] | select(.type == "LESSON") | .id' \
+	    | tail -n1 \
 	    | xargs printf "$@/%s.json\n")
 
 contentTree.json:

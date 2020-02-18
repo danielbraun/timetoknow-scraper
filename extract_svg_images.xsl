@@ -3,7 +3,9 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:svg="http://www.w3.org/2000/svg">
+
     <xsl:output method="text"/>
+
     <xsl:template match="/">
         <xsl:for-each select="//svg:image">
             <xsl:value-of select="@xlink:href"/>
