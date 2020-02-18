@@ -2,8 +2,10 @@ CURL_CONFIG=-XGET -f -H "Authorization: Bearer $(shell cat oauth_token)"
 HOST=https://api.prod.timetoknow.com
 HOST2=https://apps.prod.timetoknow.com
 
-all: svg_images
-all: pdfs
+# TODO: scrape everything and use cairosvg
+
+all: full_slides
+
 %.pdf: %.svg
 	cairosvg $< -o $@
 
@@ -21,6 +23,16 @@ svg_images: slides
 %.page.pdf:
 	mkdir -p `dirname $@`
 	cairosvg $(HOST2)/$*/$(shell basename $*).svg -o $@
+
+%/lesson.pdf:
+	cd $* && pdfunite `ls *.page.pdf | sort -n` lesson.pdf
+
+full_slides:
+	$(MAKE) $(shell find resources -name "*.pdf" \
+	    | xargs -L1 dirname \
+	    | uniq \
+	    | xargs -L1 printf "%s/lesson.pdf\n" \
+	    )
 
 slides: lessons
 	$(MAKE) $(shell ls $</* \

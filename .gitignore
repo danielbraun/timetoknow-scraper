@@ -3,3 +3,4 @@ courses/
 lessons/
 oauth_token
 slides/
+*.page.pdf
